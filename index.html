@@ -7,18 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0c0c0c;
-    --surface: #141414;
-    --surface2: #1c1c1c;
-    --border: #2a2a2a;
-    --gold: #c9a84c;
-    --gold-dim: #6b5a28;
+    --bg: #ffffff;
+    --surface: #f4f4f4;
+    --surface2: #e8e8e8;
+    --border: #d0d0d0;
+    --gold: #a07820;
+    --gold-dim: #b89030;
     --green: #1e7a45;
     --green-bright: #27ae60;
     --red: #c0392b;
     --red-bright: #e74c3c;
-    --text: #e8e0cc;
-    --muted: #666;
+    --text: #1a1a1a;
+    --muted: #888;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -64,7 +64,7 @@
   .blind-table thead tr { border-bottom: 1px solid var(--gold-dim); }
   .blind-table th { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim); padding: 6px 8px; text-align: left; font-weight: 400; }
   .blind-table th:last-child { text-align: right; }
-  .blind-table td { padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+  .blind-table td { padding: 9px 8px; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 12px; }
   .blind-table td:last-child { text-align: right; color: var(--muted); font-size: 11px; }
   .blind-table tr.active-row td { background: rgba(201,168,76,0.12); color: var(--gold); }
   .blind-table tr.active-row td:last-child { color: var(--gold-dim); }
@@ -103,7 +103,7 @@
 
   /* RULES */
   .rules-card { background: var(--surface); border: 1px solid var(--border); padding: 14px; margin-bottom: 20px; }
-  .rule-line { font-size: 11px; color: var(--text); padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.4; display: flex; gap: 8px; }
+  .rule-line { font-size: 11px; color: var(--text); padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); line-height: 1.4; display: flex; gap: 8px; }
   .rule-line:last-child { border-bottom: none; }
   .rule-icon { color: var(--gold); flex-shrink: 0; }
 
@@ -115,7 +115,7 @@
   .alarm-next span { color: var(--text); }
   @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
 
-  footer { text-align: center; font-size: 9px; letter-spacing: 2px; color: #333; text-transform: uppercase; padding: 20px 0 10px; }
+  footer { text-align: center; font-size: 9px; letter-spacing: 2px; color: #aaa; text-transform: uppercase; padding: 20px 0 10px; }
 </style>
 </head>
 <body>
