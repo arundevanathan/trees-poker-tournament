@@ -41,12 +41,22 @@ body {
   top: 0;
   z-index: 10;
 }
+.header-left { display: flex; flex-direction: column; gap: 2px; }
 .header-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 26px;
   letter-spacing: 5px;
   color: var(--gold);
+  line-height: 1;
 }
+.header-pin {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.header-pin span { color: var(--text); font-weight: 500; }
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .conn-status {
   display: flex;
   align-items: center;
@@ -63,6 +73,14 @@ body {
   flex-shrink: 0;
 }
 .conn-dot.connected { background: var(--green); }
+.home-link {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+}
+.home-link:hover { color: var(--gold); }
 
 /* SECTION */
 .section {
@@ -82,10 +100,7 @@ body {
 .section-body { padding: 14px 16px; }
 
 /* TIMER */
-.timer-display {
-  text-align: center;
-  margin-bottom: 14px;
-}
+.timer-display { text-align: center; margin-bottom: 14px; }
 .timer-digits {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 72px;
@@ -96,12 +111,7 @@ body {
 }
 .timer-digits.warning { color: var(--orange); }
 .timer-digits.danger  { color: var(--red); }
-.timer-meta {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 5px;
-  letter-spacing: 1px;
-}
+.timer-meta { font-size: 11px; color: var(--muted); margin-top: 5px; letter-spacing: 1px; }
 
 /* BUTTONS */
 .btn-grid { display: grid; gap: 8px; }
@@ -125,17 +135,8 @@ body {
 .btn-red   { color: var(--red); border-color: rgba(231,76,60,0.3); background: rgba(231,76,60,0.06); }
 
 /* LEVEL */
-.level-display {
-  text-align: center;
-  margin-bottom: 14px;
-}
-.level-num {
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
+.level-display { text-align: center; margin-bottom: 14px; }
+.level-num { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .level-blinds {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(24px, 8.5vw, 42px);
@@ -148,19 +149,10 @@ body {
 .duration-label { font-size: 13px; letter-spacing: 2px; color: var(--muted); min-width: 52px; text-align: center; }
 .btn-sm { padding: 6px 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'DM Mono', monospace; font-size: 20px; cursor: pointer; user-select: none; line-height: 1; }
 .btn-sm:active { opacity: 0.6; }
-.level-next {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 5px;
-  letter-spacing: 1px;
-}
+.level-next { font-size: 11px; color: var(--muted); margin-top: 5px; letter-spacing: 1px; }
 
 /* PLAYERS */
-.add-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
+.add-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .player-input {
   flex: 1;
   background: var(--bg);
@@ -187,10 +179,7 @@ body {
   opacity: 0.4;
   border-color: rgba(231,76,60,0.3);
 }
-.player-row.eliminated .player-name {
-  text-decoration: line-through;
-  color: var(--muted);
-}
+.player-row.eliminated .player-name { text-decoration: line-through; color: var(--muted); }
 .player-name { flex: 1; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rdots { display: flex; gap: 4px; }
 .rdot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--border); background: transparent; }
@@ -222,15 +211,57 @@ body {
 
 /* RESET CONFIRM */
 #resetConfirm { display: none; margin-top: 10px; }
+
+/* NO-PIN ERROR STATE */
+.no-pin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 32px;
+  gap: 16px;
+}
+.no-pin-overlay.show { display: flex; }
+.no-pin-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--text);
+}
+.no-pin-msg { font-size: 12px; color: var(--muted); letter-spacing: 1px; line-height: 1.8; }
 </style>
 </head>
 <body>
 
+<!-- ── NO-PIN GUARD (shown when ?pin= is missing) ─────────────────────────── -->
+<div class="no-pin-overlay" id="noPinOverlay">
+  <div class="no-pin-title">No Game PIN</div>
+  <div class="no-pin-msg">
+    A game PIN is required to open the controller.<br>
+    Launch a new game from the homepage.
+  </div>
+  <a href="index.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-decoration:none;border:1px solid var(--gold);padding:12px 24px">
+    ← Back to Homepage
+  </a>
+</div>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
 <div class="header">
-  <div class="header-title">Controller</div>
-  <div class="conn-status">
-    <div class="conn-dot" id="connDot"></div>
-    <span id="connLabel">Connecting</span>
+  <div class="header-left">
+    <div class="header-title">Controller</div>
+    <div class="header-pin">PIN: <span id="headerPin">—</span></div>
+  </div>
+  <div class="header-right">
+    <div class="conn-status">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connLabel">Connecting</span>
+    </div>
+    <a class="home-link" href="index.html">← Home</a>
   </div>
 </div>
 
@@ -295,7 +326,7 @@ body {
     </button>
     <div id="resetConfirm">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:center;line-height:1.6">
-        Clears all players and progress.
+        Clears all players and resets progress.
       </div>
       <div class="btn-grid col2">
         <button class="btn" onclick="cancelReset()">Cancel</button>
@@ -308,6 +339,17 @@ body {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
+// ── READ PIN FROM URL ────────────────────────────────────────────────────────
+const urlPin = new URLSearchParams(window.location.search).get('pin');
+
+if (!urlPin || !/^\d{4}$/.test(urlPin)) {
+  // Show the no-PIN error overlay; page is otherwise inert
+  document.getElementById('noPinOverlay').classList.add('show');
+}
+
+// Display the PIN in the header for reference
+document.getElementById('headerPin').textContent = urlPin || '—';
+
 const firebaseConfig = {
   apiKey: "AIzaSyAWKtxjYscK109gGcGYU2BhNhnT53NXCfc",
   authDomain: "home-poker-6ce82.firebaseapp.com",
@@ -320,6 +362,12 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// ── SCOPED FIREBASE REFS ─────────────────────────────────────────────────────
+// All data lives under games/{pin}/ so multiple games never collide.
+const gameRef    = () => db.ref(`games/${urlPin}/game`);
+const playersRef = () => db.ref(`games/${urlPin}/players`);
+const playerRef  = (key) => db.ref(`games/${urlPin}/players/${key}`);
 
 const LEVELS = [
   { sb: 10,   bb: 20   },
@@ -340,34 +388,48 @@ let levelDuration = 15 * 60;
 let gameState = null;
 let playersData = {};
 
-// ── Connection ──────────────────────────────────────────────
+// ── CONNECTION ───────────────────────────────────────────────────────────────
 db.ref('.info/connected').on('value', snap => {
   const ok = snap.val();
   document.getElementById('connDot').className = 'conn-dot' + (ok ? ' connected' : '');
   document.getElementById('connLabel').textContent = ok ? 'Live' : 'Offline';
 });
 
-// ── Listeners ───────────────────────────────────────────────
-db.ref('game').on('value', snap => {
-  gameState = snap.val();
-  if (gameState?.levelDuration) {
-    levelDuration = gameState.levelDuration;
-    document.getElementById('durationLabel').textContent = Math.round(levelDuration / 60) + ' min';
-  }
-  renderGame();
-});
+// ── FIREBASE LISTENERS ───────────────────────────────────────────────────────
+// Only attach listeners if we have a valid PIN
+if (urlPin && /^\d{4}$/.test(urlPin)) {
+  gameRef().on('value', snap => {
+    gameState = snap.val();
+    if (gameState?.levelDuration) {
+      levelDuration = gameState.levelDuration;
+      document.getElementById('durationLabel').textContent = Math.round(levelDuration / 60) + ' min';
+    }
+    renderGame();
+  });
 
-db.ref('players').on('value', snap => {
-  playersData = snap.val() || {};
-  renderPlayers();
-});
+  playersRef().on('value', snap => {
+    playersData = snap.val() || {};
+    renderPlayers();
+  });
 
-// Tick every second to animate timer between Firebase pushes
+  // Initialise the game node if it doesn't exist yet (edge case: someone opens the URL directly)
+  gameRef().once('value').then(snap => {
+    if (!snap.val()) {
+      gameRef().set({
+        currentLevel: 0,
+        levelDuration,
+        timer: { isRunning: false, pausedAt: levelDuration, startedAt: null },
+      });
+    }
+  });
+}
+
+// Tick every second to keep the displayed timer smooth between Firebase pushes
 setInterval(() => {
   if (gameState?.timer?.isRunning) renderTimer();
 }, 1000);
 
-// ── Helpers ─────────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function getTimeLeft() {
   if (!gameState?.timer) return levelDuration;
   const t = gameState.timer;
@@ -379,30 +441,30 @@ function getTimeLeft() {
 function fmt(n) { return n.toLocaleString('en-IN'); }
 function pad(n) { return String(n).padStart(2, '0'); }
 
-// ── Render ──────────────────────────────────────────────────
+// ── RENDER ───────────────────────────────────────────────────────────────────
 function renderGame() {
   if (!gameState) return;
   renderTimer();
   const level = gameState.currentLevel ?? 0;
-  const lvl = LEVELS[level];
+  const lvl  = LEVELS[level];
   const next = LEVELS[level + 1];
-  document.getElementById('levelNum').textContent = `Level ${level + 1} of ${LEVELS.length}`;
+  document.getElementById('levelNum').textContent    = `Level ${level + 1} of ${LEVELS.length}`;
   document.getElementById('levelBlinds').textContent = `${fmt(lvl.sb)} / ${fmt(lvl.bb)}`;
-  document.getElementById('levelNext').textContent = next
+  document.getElementById('levelNext').textContent   = next
     ? `Next: ${fmt(next.sb)} / ${fmt(next.bb)}`
     : 'Final level';
 }
 
 function renderTimer() {
   if (!gameState) return;
-  const timeLeft = getTimeLeft();
+  const timeLeft  = getTimeLeft();
   const isRunning = gameState.timer?.isRunning;
-  const level = gameState.currentLevel ?? 0;
-  const lvl = LEVELS[level];
+  const level     = gameState.currentLevel ?? 0;
+  const lvl       = LEVELS[level];
 
   const el = document.getElementById('timerDigits');
   el.textContent = pad(Math.floor(timeLeft / 60)) + ':' + pad(timeLeft % 60);
-  el.className = 'timer-digits' + (timeLeft <= 60 ? ' danger' : timeLeft <= 180 ? ' warning' : '');
+  el.className   = 'timer-digits' + (timeLeft <= 60 ? ' danger' : timeLeft <= 180 ? ' warning' : '');
 
   document.getElementById('timerMeta').textContent =
     `Level ${level + 1} · ${fmt(lvl.sb)} / ${fmt(lvl.bb)}`;
@@ -410,10 +472,10 @@ function renderTimer() {
 }
 
 function renderPlayers() {
-  const list = document.getElementById('playerList');
-  const level = gameState?.currentLevel ?? 0;
+  const list      = document.getElementById('playerList');
+  const level     = gameState?.currentLevel ?? 0;
   const rebuysOpen = level < REBUY_CUTOFF;
-  const entries = Object.entries(playersData).sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0));
+  const entries   = Object.entries(playersData).sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0));
 
   if (entries.length === 0) {
     list.innerHTML = '<div class="empty-players">No players yet</div>';
@@ -423,9 +485,9 @@ function renderPlayers() {
   list.innerHTML = '';
   entries.forEach(([key, p]) => {
     const canRebuy = rebuysOpen && (p.rebuys ?? 0) < 2 && !p.eliminated;
-    const row = document.createElement('div');
-    row.className = 'player-row' + (p.eliminated ? ' eliminated' : '');
-    const dots = [0, 1].map(i =>
+    const row      = document.createElement('div');
+    row.className  = 'player-row' + (p.eliminated ? ' eliminated' : '');
+    const dots     = [0, 1].map(i =>
       `<div class="rdot ${(p.rebuys ?? 0) > i ? 'used' : ''}"></div>`
     ).join('');
     row.innerHTML = `
@@ -433,48 +495,52 @@ function renderPlayers() {
       <div class="rdots">${dots}</div>
       <button class="rebuy-btn" onclick="addRebuy('${key}')" ${canRebuy ? '' : 'disabled'}>+R</button>
       <div class="rebuy-count">${p.rebuys ?? 0}/2</div>
-      <button class="elim-btn" onclick="toggleElim('${key}')" title="${p.eliminated ? 'Restore' : 'Eliminate'}">${p.eliminated ? '↩' : '✕'}</button>
+      <button class="elim-btn" onclick="toggleElim('${key}')" title="${p.eliminated ? 'Restore' : 'Eliminate'}">
+        ${p.eliminated ? '↩' : '✕'}
+      </button>
     `;
     list.appendChild(row);
   });
 }
 
-// ── Duration control ─────────────────────────────────────────
+// ── DURATION CONTROL ─────────────────────────────────────────────────────────
 function changeDuration(deltaMins) {
   const current = Math.round(levelDuration / 60);
-  const next = Math.max(1, Math.min(60, current + deltaMins));
-  const secs = next * 60;
-  const updates = { 'game/levelDuration': secs };
+  const next    = Math.max(1, Math.min(60, current + deltaMins));
+  const secs    = next * 60;
+  // Use a multi-path update to atomically write both keys
+  const updates = {};
+  updates[`games/${urlPin}/game/levelDuration`] = secs;
   if (!gameState?.timer?.isRunning) {
-    updates['game/timer'] = { isRunning: false, pausedAt: secs, startedAt: null };
+    updates[`games/${urlPin}/game/timer`] = { isRunning: false, pausedAt: secs, startedAt: null };
   }
   db.ref().update(updates);
 }
 
-// ── Timer controls ───────────────────────────────────────────
+// ── TIMER CONTROLS ───────────────────────────────────────────────────────────
 function toggleTimer() {
   if (gameState?.timer?.isRunning) {
     const timeLeft = getTimeLeft();
-    db.ref('game/timer').update({ isRunning: false, pausedAt: timeLeft, startedAt: null });
+    gameRef().child('timer').update({ isRunning: false, pausedAt: timeLeft, startedAt: null });
   } else {
     const timeLeft = getTimeLeft();
-    db.ref('game/timer').update({
+    gameRef().child('timer').update({
       isRunning: true,
-      pausedAt: timeLeft,
+      pausedAt:  timeLeft,
       startedAt: firebase.database.ServerValue.TIMESTAMP,
     });
   }
 }
 
 function resetTimer() {
-  db.ref('game/timer').update({ isRunning: false, pausedAt: levelDuration, startedAt: null });
+  gameRef().child('timer').update({ isRunning: false, pausedAt: levelDuration, startedAt: null });
 }
 
-// ── Level controls ───────────────────────────────────────────
+// ── LEVEL CONTROLS ───────────────────────────────────────────────────────────
 function nextLevel() {
   const level = gameState?.currentLevel ?? 0;
   if (level >= LEVELS.length - 1) return;
-  db.ref('game').update({
+  gameRef().update({
     currentLevel: level + 1,
     timer: { isRunning: false, pausedAt: levelDuration, startedAt: null },
   });
@@ -483,19 +549,19 @@ function nextLevel() {
 function prevLevel() {
   const level = gameState?.currentLevel ?? 0;
   if (level <= 0) return;
-  db.ref('game').update({
+  gameRef().update({
     currentLevel: level - 1,
     timer: { isRunning: false, pausedAt: levelDuration, startedAt: null },
   });
 }
 
-// ── Player controls ──────────────────────────────────────────
+// ── PLAYER CONTROLS ──────────────────────────────────────────────────────────
 function addPlayer() {
   const input = document.getElementById('playerInput');
-  const name = input.value.trim();
+  const name  = input.value.trim();
   if (!name) return;
   const order = Object.keys(playersData).length;
-  db.ref('players').push({ name, rebuys: 0, eliminated: false, order });
+  playersRef().push({ name, rebuys: 0, eliminated: false, order });
   input.value = '';
 }
 
@@ -504,36 +570,33 @@ function addRebuy(key) {
   if (!p) return;
   const level = gameState?.currentLevel ?? 0;
   if (level >= REBUY_CUTOFF || (p.rebuys ?? 0) >= 2 || p.eliminated) return;
-  db.ref(`players/${key}`).update({ rebuys: (p.rebuys ?? 0) + 1 });
+  playerRef(key).update({ rebuys: (p.rebuys ?? 0) + 1 });
 }
 
 function toggleElim(key) {
   const p = playersData[key];
   if (!p) return;
-  db.ref(`players/${key}`).update({ eliminated: !p.eliminated });
+  playerRef(key).update({ eliminated: !p.eliminated });
 }
 
-// ── Reset ─────────────────────────────────────────────────────
+// ── RESET ─────────────────────────────────────────────────────────────────────
 function confirmReset() {
   document.getElementById('resetConfirm').style.display = 'block';
-  document.getElementById('fullResetBtn').style.display = 'none';
+  document.getElementById('fullResetBtn').style.display  = 'none';
 }
 function cancelReset() {
   document.getElementById('resetConfirm').style.display = 'none';
-  document.getElementById('fullResetBtn').style.display = 'block';
+  document.getElementById('fullResetBtn').style.display  = 'block';
 }
 function executeReset() {
-  db.ref('game').set({ currentLevel: 0, timer: { isRunning: false, pausedAt: levelDuration, startedAt: null } });
-  db.ref('players').remove();
+  gameRef().set({
+    currentLevel: 0,
+    levelDuration,
+    timer: { isRunning: false, pausedAt: levelDuration, startedAt: null },
+  });
+  playersRef().remove();
   cancelReset();
 }
-
-// ── Init ──────────────────────────────────────────────────────
-db.ref('game').once('value').then(snap => {
-  if (!snap.val()) {
-    db.ref('game').set({ currentLevel: 0, timer: { isRunning: false, pausedAt: levelDuration, startedAt: null } });
-  }
-});
 </script>
 </body>
 </html>

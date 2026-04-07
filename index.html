@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Poker Night</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f4f4f4;
+  --surface: #ffffff;
+  --border: #d0d0d0;
+  --gold: #a07820;
+  --gold-light: #f5ecd7;
+  --text: #1a1a1a;
+  --muted: #888;
+  --green: #27ae60;
+  --red: #e74c3c;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 16px 20px;
+  text-align: center;
+}
+.app-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 12px;
+  color: var(--gold);
+  line-height: 1;
+  text-indent: 12px; /* optical compensation for letter-spacing */
+}
+.app-subtitle {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── ACTION CARDS ────────────────────────────────── */
+.actions { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.action-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  user-select: none;
+  transition: transform 0.1s;
+}
+.action-card:active { transform: scale(0.98); opacity: 0.85; }
+.action-card.primary  { border-color: var(--gold); background: var(--gold-light); }
+
+.action-icon { font-size: 26px; width: 34px; text-align: center; flex-shrink: 0; }
+.action-text { flex: 1; }
+.action-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--text);
+  line-height: 1;
+}
+.action-card.primary .action-title { color: var(--gold); }
+.action-desc { font-size: 10px; letter-spacing: 1px; color: var(--muted); margin-top: 4px; }
+.action-arrow { font-size: 20px; color: var(--muted); flex-shrink: 0; }
+.action-card.primary .action-arrow { color: var(--gold); }
+
+/* ── BOTTOM SHEET OVERLAY ────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 50;
+  align-items: flex-end;
+  justify-content: center;
+}
+.overlay.show { display: flex; }
+
+.sheet {
+  background: var(--surface);
+  width: 100%;
+  max-width: 480px;
+  border-top: 1px solid var(--border);
+  padding: 24px 20px 44px;
+  position: relative;
+  max-height: 92vh;
+  overflow-y: auto;
+  /* Slide-up feel */
+  animation: slideUp 0.22s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.sheet-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 4px;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.close-btn {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+/* ── FORM ────────────────────────────────────────── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  padding: 12px 14px;
+  outline: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-input.pin-input {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 10px;
+  text-align: center;
+  text-indent: 10px; /* compensate letter-spacing */
+}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  user-select: none;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.6; }
+.btn-gold { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+/* ── MESSAGES ────────────────────────────────────── */
+.msg {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  line-height: 1.5;
+  display: none;
+}
+.msg.show { display: block; }
+.msg.error   { background: rgba(231,76,60,0.07);  border: 1px solid rgba(231,76,60,0.3); color: var(--red); }
+.msg.success { background: rgba(39,174,96,0.07);  border: 1px solid rgba(39,174,96,0.3); color: #1a7a45; }
+
+/* ── LOADING SPINNER ─────────────────────────────── */
+.loading {
+  display: none;
+  padding: 16px 0 8px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+.loading.show { display: block; }
+.spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── PIN RESULT (after launch) ───────────────────── */
+.pin-result { display: none; }
+.pin-result.show { display: block; }
+
+.pin-hero { text-align: center; padding: 8px 0 16px; }
+.pin-hero-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.pin-hero-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 88px;
+  letter-spacing: 18px;
+  text-indent: 18px;
+  color: var(--gold);
+  line-height: 1;
+}
+.link-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  margin: 12px 0 8px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- ── PAGE HEADER ─────────────────────────────────────────────────────────── -->
+<div class="header">
+  <div class="app-title">Poker Night</div>
+  <div class="app-subtitle">Tournament Manager</div>
+</div>
+
+<!-- ── ACTION CARDS ───────────────────────────────────────────────────────── -->
+<div class="actions">
+
+  <div class="action-card primary" onclick="openLaunch()">
+    <div class="action-icon">♠</div>
+    <div class="action-text">
+      <div class="action-title">Launch New Game</div>
+      <div class="action-desc">Generate a unique PIN and start a tournament</div>
+    </div>
+    <div class="action-arrow">›</div>
+  </div>
+
+  <div class="action-card" onclick="openJoin()">
+    <div class="action-icon">♣</div>
+    <div class="action-text">
+      <div class="action-title">Join Existing Game</div>
+      <div class="action-desc">Enter a PIN to join as a registered player</div>
+    </div>
+    <div class="action-arrow">›</div>
+  </div>
+
+  <div class="action-card" onclick="openDashboard()">
+    <div class="action-icon">♥</div>
+    <div class="action-text">
+      <div class="action-title">Game Dashboard</div>
+      <div class="action-desc">Monitor and manage a game by PIN</div>
+    </div>
+    <div class="action-arrow">›</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LAUNCH OVERLAY
+══════════════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="launchOverlay">
+  <div class="sheet">
+    <button class="close-btn" onclick="closeLaunch()">✕</button>
+    <div class="sheet-title">Launch New Game</div>
+
+    <!-- Step 1: Initial CTA -->
+    <div id="launchInitial">
+      <p style="font-size:11px;color:var(--muted);line-height:1.8;letter-spacing:0.5px;margin-bottom:20px">
+        A unique 4-digit PIN will be generated for your game.<br>
+        Share the player link with everyone so they can join from their phones.
+      </p>
+      <button class="btn btn-gold" onclick="launchNewGame()">Generate PIN &amp; Start →</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="launchLoading">
+      <span class="spinner"></span>Creating game in Firebase...
+    </div>
+
+    <!-- Step 2: Result -->
+    <div class="pin-result" id="pinResult">
+      <div class="pin-hero">
+        <div class="pin-hero-label">Your Game PIN</div>
+        <div class="pin-hero-num" id="pinDisplay">——</div>
+      </div>
+      <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">
+        Player Link
+      </div>
+      <div class="link-box" id="pinLink">—</div>
+      <button class="btn" onclick="copyLink()" style="margin-bottom:10px" id="copyBtn">
+        Copy Player Link
+      </button>
+      <div class="msg success show">
+        Game created! Opening controller in a moment...
+      </div>
+      <button class="btn btn-gold" onclick="goToController()" style="margin-top:12px">
+        Open Controller →
+      </button>
+    </div>
+
+    <div class="msg error" id="launchError"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     JOIN OVERLAY
+══════════════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="joinOverlay">
+  <div class="sheet">
+    <button class="close-btn" onclick="closeJoin()">✕</button>
+    <div class="sheet-title">Join Game</div>
+
+    <div class="form-group">
+      <label class="form-label" for="joinPin">4-Digit Game PIN</label>
+      <input class="form-input pin-input" id="joinPin" type="tel" inputmode="numeric"
+        maxlength="4" placeholder="0000"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="joinName">Your Name</label>
+      <input class="form-input" id="joinName" type="text" maxlength="20"
+        placeholder="e.g. Arjun"
+        onkeydown="if(event.key==='Enter')joinGame()">
+    </div>
+
+    <div class="msg error" id="joinError"></div>
+    <div class="loading" id="joinLoading"><span class="spinner"></span>Joining game...</div>
+
+    <div style="margin-top:14px">
+      <button class="btn btn-gold" onclick="joinGame()">Join Game →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DASHBOARD OVERLAY
+══════════════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="dashOverlay">
+  <div class="sheet">
+    <button class="close-btn" onclick="closeDash()">✕</button>
+    <div class="sheet-title">Game Dashboard</div>
+
+    <div class="form-group">
+      <label class="form-label" for="dashPin">4-Digit Game PIN</label>
+      <input class="form-input pin-input" id="dashPin" type="tel" inputmode="numeric"
+        maxlength="4" placeholder="0000"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+        onkeydown="if(event.key==='Enter')goDashboard()">
+    </div>
+
+    <div class="msg error" id="dashError"></div>
+    <div class="loading" id="dashLoading"><span class="spinner"></span>Checking PIN...</div>
+
+    <div style="margin-top:14px">
+      <button class="btn btn-gold" onclick="goDashboard()">View Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAWKtxjYscK109gGcGYU2BhNhnT53NXCfc",
+  authDomain: "home-poker-6ce82.firebaseapp.com",
+  databaseURL: "https://home-poker-6ce82-default-rtdb.firebaseio.com",
+  projectId: "home-poker-6ce82",
+  storageBucket: "home-poker-6ce82.firebasestorage.app",
+  messagingSenderId: "319555536674",
+  appId: "1:319555536674:web:5e7fc360f573e7675ac77b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const DEFAULT_LEVEL_DURATION = 15 * 60; // seconds
+
+// Derive the base URL from the current page so links work on any host
+function getBaseUrl() {
+  const { protocol, host, pathname } = window.location;
+  // Strip "index.html" if present so the base ends with "/"
+  return protocol + '//' + host + pathname.replace(/index\.html$/, '');
+}
+
+// Left-pad a number to always produce a 4-char string: 7 → "0007"
+function padPin(n) { return String(n).padStart(4, '0'); }
+
+// ── PIN GENERATION ──────────────────────────────────────────────────────────
+// Pick a random PIN and check Firebase for uniqueness. Retry up to 15 times.
+async function generateUniquePin() {
+  for (let i = 0; i < 15; i++) {
+    const pin = padPin(Math.floor(Math.random() * 10000));
+    const snap = await db.ref(`games/${pin}/game`).once('value');
+    if (!snap.exists()) return pin;
+  }
+  throw new Error('Could not find a free PIN. Please try again.');
+}
+
+// ── LAUNCH ──────────────────────────────────────────────────────────────────
+let activePinForLaunch = null;
+let controllerRedirectTimer = null;
+
+function openLaunch() {
+  // Reset to initial state each time
+  activePinForLaunch = null;
+  clearTimeout(controllerRedirectTimer);
+  document.getElementById('launchInitial').style.display = 'block';
+  document.getElementById('launchLoading').classList.remove('show');
+  document.getElementById('pinResult').classList.remove('show');
+  document.getElementById('launchError').classList.remove('show');
+  document.getElementById('launchOverlay').classList.add('show');
+}
+
+function closeLaunch() {
+  clearTimeout(controllerRedirectTimer);
+  document.getElementById('launchOverlay').classList.remove('show');
+}
+
+async function launchNewGame() {
+  document.getElementById('launchInitial').style.display = 'none';
+  document.getElementById('launchLoading').classList.add('show');
+  document.getElementById('launchError').classList.remove('show');
+
+  try {
+    const pin = await generateUniquePin();
+    activePinForLaunch = pin;
+
+    // Initialise the game record in Firebase under games/{pin}/game
+    await db.ref(`games/${pin}/game`).set({
+      currentLevel: 0,
+      levelDuration: DEFAULT_LEVEL_DURATION,
+      timer: { isRunning: false, pausedAt: DEFAULT_LEVEL_DURATION, startedAt: null },
+      createdAt: firebase.database.ServerValue.TIMESTAMP,
+    });
+
+    const playerLink = getBaseUrl() + 'display.html?pin=' + pin;
+    document.getElementById('pinDisplay').textContent = pin;
+    document.getElementById('pinLink').textContent = playerLink;
+
+    document.getElementById('launchLoading').classList.remove('show');
+    document.getElementById('pinResult').classList.add('show');
+
+    // Auto-redirect to controller after 4 seconds so the host can copy the link first
+    controllerRedirectTimer = setTimeout(goToController, 4000);
+
+  } catch (err) {
+    document.getElementById('launchLoading').classList.remove('show');
+    document.getElementById('launchInitial').style.display = 'block';
+    showError('launchError', err.message || 'Network error. Check your connection.');
+  }
+}
+
+function copyLink() {
+  if (!activePinForLaunch) return;
+  const url = getBaseUrl() + 'display.html?pin=' + activePinForLaunch;
+  const btn = document.getElementById('copyBtn');
+
+  navigator.clipboard.writeText(url).catch(() => {
+    // Fallback for browsers that block clipboard API
+    const ta = Object.assign(document.createElement('textarea'), { value: url });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+
+  btn.textContent = 'Copied ✓';
+  setTimeout(() => { btn.textContent = 'Copy Player Link'; }, 2200);
+}
+
+function goToController() {
+  if (activePinForLaunch) window.location.href = 'controller.html?pin=' + activePinForLaunch;
+}
+
+// ── JOIN ────────────────────────────────────────────────────────────────────
+function openJoin() {
+  document.getElementById('joinPin').value = '';
+  document.getElementById('joinName').value = '';
+  document.getElementById('joinError').classList.remove('show');
+  document.getElementById('joinLoading').classList.remove('show');
+  document.getElementById('joinOverlay').classList.add('show');
+  // Slight delay so the sheet animation completes before focusing
+  setTimeout(() => document.getElementById('joinPin').focus(), 250);
+}
+
+function closeJoin() { document.getElementById('joinOverlay').classList.remove('show'); }
+
+async function joinGame() {
+  const rawPin  = document.getElementById('joinPin').value.trim();
+  const name    = document.getElementById('joinName').value.trim();
+  const errEl   = document.getElementById('joinError');
+  errEl.classList.remove('show');
+
+  // Client-side validation
+  if (!/^\d{4}$/.test(rawPin)) {
+    return showError('joinError', 'Enter a valid 4-digit PIN.');
+  }
+  if (!name) {
+    return showError('joinError', 'Please enter your name.');
+  }
+  if (name.length > 20) {
+    return showError('joinError', 'Name must be 20 characters or fewer.');
+  }
+
+  const pin = padPin(parseInt(rawPin, 10));
+  document.getElementById('joinLoading').classList.add('show');
+
+  try {
+    // Check the game exists
+    const gameSnap = await db.ref(`games/${pin}/game`).once('value');
+    if (!gameSnap.exists()) {
+      throw new Error(`No game found for PIN ${pin}. Double-check with your host.`);
+    }
+
+    // Count existing players to set the join order
+    const playersSnap = await db.ref(`games/${pin}/players`).once('value');
+    const order = Object.keys(playersSnap.val() || {}).length;
+
+    // Register the player
+    await db.ref(`games/${pin}/players`).push({ name, rebuys: 0, eliminated: false, order });
+
+    // Off to the display!
+    window.location.href = 'display.html?pin=' + pin;
+
+  } catch (err) {
+    document.getElementById('joinLoading').classList.remove('show');
+    showError('joinError', err.message || 'Network error. Check your connection.');
+  }
+}
+
+// ── DASHBOARD ───────────────────────────────────────────────────────────────
+function openDashboard() {
+  document.getElementById('dashPin').value = '';
+  document.getElementById('dashError').classList.remove('show');
+  document.getElementById('dashLoading').classList.remove('show');
+  document.getElementById('dashOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('dashPin').focus(), 250);
+}
+
+function closeDash() { document.getElementById('dashOverlay').classList.remove('show'); }
+
+async function goDashboard() {
+  const rawPin = document.getElementById('dashPin').value.trim();
+  document.getElementById('dashError').classList.remove('show');
+
+  if (!/^\d{4}$/.test(rawPin)) {
+    return showError('dashError', 'Enter a valid 4-digit PIN.');
+  }
+
+  const pin = padPin(parseInt(rawPin, 10));
+  document.getElementById('dashLoading').classList.add('show');
+
+  try {
+    const snap = await db.ref(`games/${pin}/game`).once('value');
+    if (!snap.exists()) throw new Error(`No game found for PIN ${pin}.`);
+    window.location.href = 'dashboard.html?pin=' + pin;
+  } catch (err) {
+    document.getElementById('dashLoading').classList.remove('show');
+    showError('dashError', err.message || 'Network error. Check your connection.');
+  }
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+// Tap the backdrop to dismiss any open overlay
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => {
+    if (e.target === ov) ov.classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>

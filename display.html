@@ -34,8 +34,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   display: inline-block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
   padding: 3px 8px; border: 1px solid; margin-top: 4px;
 }
-.rebuy-badge.open { color: var(--green); border-color: var(--green); }
-.rebuy-badge.closed { color: var(--red); border-color: var(--red); }
+.rebuy-badge.open   { color: var(--green); border-color: var(--green); }
+.rebuy-badge.closed { color: var(--red);   border-color: var(--red);   }
 .header-right { text-align: right; }
 .conn-status { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
 .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
@@ -75,7 +75,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   letter-spacing: 8px; line-height: 1; color: var(--text); transition: color 0.3s;
 }
 .timer-digits.warning { color: var(--orange); }
-.timer-digits.danger { color: var(--red); animation: pulse-danger 0.6s infinite alternate; }
+.timer-digits.danger  { color: var(--red); animation: pulse-danger 0.6s infinite alternate; }
 @keyframes pulse-danger { from { opacity: 0.65; } to { opacity: 1; } }
 .progress-wrap { width: 100%; height: 4px; background: var(--border); margin: 14px 0 10px; border-radius: 2px; }
 .progress-fill { height: 100%; border-radius: 2px; background: var(--gold); transition: width 1s linear, background 0.3s; }
@@ -120,13 +120,36 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   color: var(--gold); letter-spacing: 8px; animation: pulse 0.8s infinite alternate;
 }
 @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
-.alarm-next { font-size: 18px; color: var(--muted); margin-top: 16px; letter-spacing: 2px; line-height: 2; }
+.alarm-next  { font-size: 18px; color: var(--muted); margin-top: 16px; letter-spacing: 2px; line-height: 2; }
 .alarm-next span { color: var(--text); }
-.alarm-hint { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 24px; border: 1px solid var(--border); padding: 8px 20px; }
+.alarm-hint  { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 24px; border: 1px solid var(--border); padding: 8px 20px; }
+
+/* NO-PIN overlay (for TV screens opened without a PIN) */
+.no-pin-screen {
+  display: none; position: fixed; inset: 0; background: var(--bg);
+  z-index: 200; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px; gap: 20px;
+}
+.no-pin-screen.show { display: flex; }
+.no-pin-screen .big { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 6px; color: var(--gold); }
+.no-pin-screen .sm  { font-size: 12px; letter-spacing: 2px; color: var(--muted); line-height: 1.8; }
 </style>
 </head>
 <body>
 
+<!-- ── NO-PIN GUARD ────────────────────────────────────────────────────────── -->
+<div class="no-pin-screen" id="noPinScreen">
+  <div class="big">No Game PIN</div>
+  <div class="sm">
+    Open this display from a game link shared by the host.<br>
+    e.g. display.html?pin=1234
+  </div>
+  <a href="index.html" style="font-size:11px;letter-spacing:2px;color:var(--gold);text-decoration:none;border:1px solid var(--gold);padding:10px 22px">
+    ← Homepage
+  </a>
+</div>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
 <div class="header">
   <div class="title">POKER NIGHT</div>
   <div class="header-center">
@@ -138,7 +161,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
       <div class="conn-dot" id="connDot"></div>
       <span id="connLabel">Connecting</span>
     </div>
-    <div class="subtitle">Godrej Trees · Hold'em</div>
+    <div class="subtitle" id="pinSubtitle">PIN: —</div>
   </div>
 </div>
 
@@ -197,17 +220,29 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   </div>
 </div>
 
-<div id="audioPrompt" style="position:fixed;bottom:18px;right:18px;background:rgba(255,255,255,0.07);border:1px solid #2a2a2a;padding:7px 14px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;cursor:pointer;z-index:200">🔊 Tap to enable sound</div>
+<div id="audioPrompt" style="position:fixed;bottom:18px;right:18px;background:rgba(255,255,255,0.07);border:1px solid #2a2a2a;padding:7px 14px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;cursor:pointer;z-index:200">
+  🔊 Tap to enable sound
+</div>
 
 <div class="alarm-overlay" id="alarmOverlay">
   <div class="alarm-title" id="alarmTitle">LEVEL OVER</div>
-  <div class="alarm-next" id="alarmNext"></div>
+  <div class="alarm-next"  id="alarmNext"></div>
   <div class="alarm-hint">Advance the level on the controller</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
+// ── READ PIN FROM URL ────────────────────────────────────────────────────────
+const urlPin = new URLSearchParams(window.location.search).get('pin');
+
+if (!urlPin || !/^\d{4}$/.test(urlPin)) {
+  document.getElementById('noPinScreen').classList.add('show');
+}
+
+// Show the PIN in the header subtitle
+document.getElementById('pinSubtitle').textContent = urlPin ? 'PIN: ' + urlPin : 'No PIN';
+
 const firebaseConfig = {
   apiKey: "AIzaSyAWKtxjYscK109gGcGYU2BhNhnT53NXCfc",
   authDomain: "home-poker-6ce82.firebaseapp.com",
@@ -237,12 +272,12 @@ const LEVELS = [
 const REBUY_CUTOFF = 4;
 
 let levelDuration = 15 * 60;
-let gameState = null;
-let playersData = {};
-let alarmShown = false;
-let audioCtx = null;
+let gameState     = null;
+let playersData   = {};
+let alarmShown    = false;
+let audioCtx      = null;
 let audioUnlocked = false;
-let beepInterval = null;
+let beepInterval  = null;
 
 // Browsers block AudioContext until a user gesture — unlock on first tap
 function unlockAudio() {
@@ -255,28 +290,32 @@ function unlockAudio() {
 document.addEventListener('click',      unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
 
-db.ref('.info/connected').on('value', snap => {
-  const ok = snap.val();
-  document.getElementById('connDot').className = 'conn-dot' + (ok ? ' connected' : '');
-  document.getElementById('connLabel').textContent = ok ? 'Live' : 'Reconnecting...';
-});
+// ── FIREBASE LISTENERS (only if PIN is valid) ────────────────────────────────
+if (urlPin && /^\d{4}$/.test(urlPin)) {
+  db.ref('.info/connected').on('value', snap => {
+    const ok = snap.val();
+    document.getElementById('connDot').className  = 'conn-dot' + (ok ? ' connected' : '');
+    document.getElementById('connLabel').textContent = ok ? 'Live' : 'Reconnecting...';
+  });
 
-db.ref('game').on('value', snap => {
-  gameState = snap.val();
-  if (gameState?.levelDuration) levelDuration = gameState.levelDuration;
-  renderAll();
-});
+  db.ref(`games/${urlPin}/game`).on('value', snap => {
+    gameState = snap.val();
+    if (gameState?.levelDuration) levelDuration = gameState.levelDuration;
+    renderAll();
+  });
 
-db.ref('players').on('value', snap => {
-  playersData = snap.val() || {};
-  renderPlayers();
-});
+  db.ref(`games/${urlPin}/players`).on('value', snap => {
+    playersData = snap.val() || {};
+    renderPlayers();
+  });
+}
 
 // Tick every second to keep timer smooth between Firebase updates
 setInterval(() => {
   if (gameState?.timer?.isRunning) renderTimer();
 }, 1000);
 
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function getTimeLeft() {
   if (!gameState?.timer) return levelDuration;
   const t = gameState.timer;
@@ -285,19 +324,23 @@ function getTimeLeft() {
   return Math.max(0, (t.pausedAt ?? levelDuration) - elapsed);
 }
 
+function fmt(n) { return n.toLocaleString('en-IN'); }
+function pad(n) { return String(n).padStart(2, '0'); }
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
 function renderAll() {
   if (!gameState) return;
   const level = gameState.currentLevel ?? 0;
-  const lvl = LEVELS[level];
+  const lvl  = LEVELS[level];
   const next = LEVELS[level + 1];
 
-  document.getElementById('levelLabel').textContent = `Level ${level + 1} of ${LEVELS.length}`;
+  document.getElementById('levelLabel').textContent    = `Level ${level + 1} of ${LEVELS.length}`;
   document.getElementById('currentBlinds').textContent = fmt(lvl.sb) + ' / ' + fmt(lvl.bb);
-  document.getElementById('nextBlinds').textContent = next ? fmt(next.sb) + ' / ' + fmt(next.bb) : '— Final —';
+  document.getElementById('nextBlinds').textContent    = next ? fmt(next.sb) + ' / ' + fmt(next.bb) : '— Final —';
 
-  const open = level < REBUY_CUTOFF;
+  const open  = level < REBUY_CUTOFF;
   const badge = document.getElementById('rebuyBadge');
-  badge.className = 'rebuy-badge ' + (open ? 'open' : 'closed');
+  badge.className   = 'rebuy-badge ' + (open ? 'open' : 'closed');
   badge.textContent = open ? 'Rebuys Open' : 'Rebuys Closed';
 
   renderTimer();
@@ -305,18 +348,16 @@ function renderAll() {
 
 function renderTimer() {
   if (!gameState) return;
-  const timeLeft = getTimeLeft();
+  const timeLeft  = getTimeLeft();
   const isRunning = gameState.timer?.isRunning;
 
-  const mins = Math.floor(timeLeft / 60);
-  const secs = timeLeft % 60;
   const el = document.getElementById('timerDisplay');
-  el.textContent = pad(mins) + ':' + pad(secs);
-  el.className = 'timer-digits' + (timeLeft <= 60 ? ' danger' : timeLeft <= 180 ? ' warning' : '');
+  el.textContent = pad(Math.floor(timeLeft / 60)) + ':' + pad(timeLeft % 60);
+  el.className   = 'timer-digits' + (timeLeft <= 60 ? ' danger' : timeLeft <= 180 ? ' warning' : '');
 
   const pct = (timeLeft / levelDuration) * 100;
   const bar = document.getElementById('progressBar');
-  bar.style.width = pct + '%';
+  bar.style.width      = pct + '%';
   bar.style.background = timeLeft <= 60 ? 'var(--red)' : timeLeft <= 180 ? 'var(--orange)' : 'var(--gold)';
 
   document.getElementById('pausedLabel').style.display = isRunning ? 'none' : 'inline-block';
@@ -327,16 +368,13 @@ function renderTimer() {
 
 function renderPlayers() {
   const players = Object.values(playersData).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  const chips = document.getElementById('playerChips');
+  const chips   = document.getElementById('playerChips');
 
   if (players.length === 0) {
     chips.innerHTML = '<div style="font-size:11px;color:var(--muted)">Waiting for players...</div>';
     document.getElementById('playerSummary').innerHTML = '';
-    document.getElementById('statActive').textContent = '0';
-    document.getElementById('statRebuys').textContent = '0';
-    document.getElementById('statPool').textContent = '₹0';
-    document.getElementById('stat1st').textContent = '₹0';
-    document.getElementById('stat2nd').textContent = '₹0';
+    ['statActive','statRebuys'].forEach(id => document.getElementById(id).textContent = '0');
+    ['statPool','stat1st','stat2nd'].forEach(id => document.getElementById(id).textContent = '₹0');
     return;
   }
 
@@ -349,23 +387,24 @@ function renderPlayers() {
     chips.appendChild(chip);
   });
 
-  const active = players.filter(p => !p.eliminated).length;
-  const out = players.length - active;
+  const active      = players.filter(p => !p.eliminated).length;
+  const out         = players.length - active;
   const totalRebuys = players.reduce((s, p) => s + (p.rebuys ?? 0), 0);
-  const pool = (players.length + totalRebuys) * 1000;
+  const pool        = (players.length + totalRebuys) * 1000;
 
   document.getElementById('playerSummary').innerHTML = `${active} active<br>${out} eliminated`;
-  document.getElementById('statActive').textContent = active;
-  document.getElementById('statRebuys').textContent = totalRebuys;
-  document.getElementById('statPool').textContent = '₹' + pool.toLocaleString('en-IN');
-  document.getElementById('stat1st').textContent = '₹' + Math.round(pool * 0.7).toLocaleString('en-IN');
-  document.getElementById('stat2nd').textContent = '₹' + Math.round(pool * 0.3).toLocaleString('en-IN');
+  document.getElementById('statActive').textContent  = active;
+  document.getElementById('statRebuys').textContent  = totalRebuys;
+  document.getElementById('statPool').textContent    = '₹' + pool.toLocaleString('en-IN');
+  document.getElementById('stat1st').textContent     = '₹' + Math.round(pool * 0.7).toLocaleString('en-IN');
+  document.getElementById('stat2nd').textContent     = '₹' + Math.round(pool * 0.3).toLocaleString('en-IN');
 }
 
+// ── ALARM ────────────────────────────────────────────────────────────────────
 function showAlarm() {
   const level = gameState?.currentLevel ?? 0;
-  const next = LEVELS[level + 1];
-  document.getElementById('alarmTitle').textContent = `LEVEL ${level + 1} OVER`;
+  const next  = LEVELS[level + 1];
+  document.getElementById('alarmTitle').textContent   = `LEVEL ${level + 1} OVER`;
   document.getElementById('alarmNext').innerHTML = next
     ? `Next → <span>Level ${level + 2}: ${fmt(next.sb)} / ${fmt(next.bb)}</span>`
     : `<span>Final level complete!</span>`;
@@ -379,12 +418,12 @@ function hideAlarm() {
 }
 
 function playBeep() {
-  if (!audioCtx) return; // audio not yet unlocked
+  if (!audioCtx) return;
   audioCtx.resume().then(() => {
     let count = 0;
     beepInterval = setInterval(() => {
       if (count >= 8) { clearInterval(beepInterval); return; }
-      const osc = audioCtx.createOscillator();
+      const osc  = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain); gain.connect(audioCtx.destination);
       osc.frequency.value = count % 2 === 0 ? 880 : 660;
@@ -400,9 +439,6 @@ function stopBeep() {
   if (beepInterval) clearInterval(beepInterval);
   if (audioCtx) { try { audioCtx.close(); } catch(e) {} audioCtx = null; }
 }
-
-function fmt(n) { return n.toLocaleString('en-IN'); }
-function pad(n) { return String(n).padStart(2, '0'); }
 </script>
 </body>
 </html>
