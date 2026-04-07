@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Poker Host - Join Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f4f4f4;
+  --surface: #ffffff;
+  --border: #d0d0d0;
+  --gold: #a07820;
+  --gold-light: #f5ecd7;
+  --text: #1a1a1a;
+  --muted: #888;
+  --green: #27ae60;
+  --red: #e74c3c;
+}
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 400px;
+}
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 8px;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 4px;
+  text-indent: 8px;
+}
+.card-subtitle {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* ── PIN HERO ────────────────────────────────────── */
+.pin-hero {
+  text-align: center;
+  padding: 14px 0 16px;
+  border: 1px solid var(--border);
+  background: var(--gold-light);
+  margin-bottom: 22px;
+}
+.pin-hero-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.pin-hero-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  letter-spacing: 14px;
+  text-indent: 14px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+/* ── FORM ────────────────────────────────────────── */
+.form-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  padding: 13px 14px;
+  outline: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+  margin-bottom: 16px;
+}
+.form-input:focus { border-color: var(--gold); }
+
+/* ── BUTTON ──────────────────────────────────────── */
+.btn-join {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  background: var(--gold);
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-join:active { opacity: 0.7; }
+
+/* ── MESSAGES ────────────────────────────────────── */
+.msg {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+  display: none;
+}
+.msg.show { display: block; }
+.msg.error { background: rgba(231,76,60,0.07); border: 1px solid rgba(231,76,60,0.3); color: var(--red); }
+
+/* ── LOADING ─────────────────────────────────────── */
+.loading { display: none; text-align: center; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); padding: 10px 0 14px; }
+.loading.show { display: block; }
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── INVALID STATE ───────────────────────────────── */
+.invalid-state { text-align: center; padding: 10px 0 4px; }
+.invalid-big { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 4px; color: var(--red); margin-bottom: 8px; }
+.invalid-sm { font-size: 11px; color: var(--muted); letter-spacing: 1px; line-height: 1.7; }
+
+/* ── HOME LINK ───────────────────────────────────── */
+.home-link {
+  display: block;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  margin-top: 16px;
+}
+.home-link:hover { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-title">Poker Host</div>
+  <div class="card-subtitle">Join Game</div>
+
+  <!-- ── INVALID PIN STATE ─────────────────────────── -->
+  <div id="invalidState" class="invalid-state" style="display:none">
+    <div class="invalid-big">Invalid Link</div>
+    <div class="invalid-sm">
+      No valid game PIN was found in this link.<br>
+      Ask your host for the correct join link.
+    </div>
+    <a href="index.html" class="home-link" style="margin-top:18px">← Go to Homepage</a>
+  </div>
+
+  <!-- ── JOIN FORM ─────────────────────────────────── -->
+  <div id="joinContent" style="display:none">
+    <div class="pin-hero">
+      <div class="pin-hero-label">Game PIN</div>
+      <div class="pin-hero-num" id="pinDisplay">——</div>
+    </div>
+
+    <label class="form-label" for="nameInput">Your Name</label>
+    <input class="form-input" id="nameInput" type="text" maxlength="20"
+      placeholder="e.g. Arjun" autocomplete="given-name"
+      onkeydown="if(event.key==='Enter')joinGame()">
+
+    <div class="msg error" id="errorMsg"></div>
+    <div class="loading" id="loadingEl"><span class="spinner"></span>Joining game...</div>
+
+    <button class="btn-join" onclick="joinGame()">Join Game →</button>
+  </div>
+</div>
+
+<a href="index.html" class="home-link" id="homeLink">← Back to Homepage</a>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+const urlPin = new URLSearchParams(window.location.search).get('pin');
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAWKtxjYscK109gGcGYU2BhNhnT53NXCfc",
+  authDomain: "home-poker-6ce82.firebaseapp.com",
+  databaseURL: "https://home-poker-6ce82-default-rtdb.firebaseio.com",
+  projectId: "home-poker-6ce82",
+  storageBucket: "home-poker-6ce82.firebasestorage.app",
+  messagingSenderId: "319555536674",
+  appId: "1:319555536674:web:5e7fc360f573e7675ac77b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+async function init() {
+  // Guard: PIN must be a 4-digit string
+  if (!urlPin || !/^\d{4}$/.test(urlPin)) {
+    showInvalid();
+    return;
+  }
+
+  // Guard: game must exist in Firebase
+  const snap = await db.ref(`games/${urlPin}/game`).once('value').catch(() => null);
+  if (!snap || !snap.exists()) {
+    showInvalid();
+    return;
+  }
+
+  // If this device already joined this game, skip the name form and go straight in
+  const existingKey = localStorage.getItem(`playerKey_${urlPin}`);
+  if (existingKey) {
+    const pSnap = await db.ref(`games/${urlPin}/players/${existingKey}`).once('value').catch(() => null);
+    if (pSnap && pSnap.exists()) {
+      // Already registered — head straight to the player dashboard
+      window.location.replace(`display.html?pin=${urlPin}&player=${existingKey}`);
+      return;
+    }
+    // Stale key (player was removed by host), clear it and let them re-register
+    localStorage.removeItem(`playerKey_${urlPin}`);
+  }
+
+  // Show the join form
+  document.getElementById('pinDisplay').textContent = urlPin;
+  document.getElementById('joinContent').style.display = 'block';
+  setTimeout(() => document.getElementById('nameInput').focus(), 150);
+}
+
+async function joinGame() {
+  const name  = document.getElementById('nameInput').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  errEl.classList.remove('show');
+
+  if (!name) {
+    errEl.textContent = 'Please enter your name.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (name.length > 20) {
+    errEl.textContent = 'Name must be 20 characters or fewer.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  document.getElementById('loadingEl').classList.add('show');
+  document.querySelector('.btn-join').disabled = true;
+
+  try {
+    // Count existing players to set join order
+    const playersSnap = await db.ref(`games/${urlPin}/players`).once('value');
+    const order = Object.keys(playersSnap.val() || {}).length;
+
+    const ref = await db.ref(`games/${urlPin}/players`).push({
+      name, rebuys: 0, eliminated: false, order,
+    });
+
+    // Persist the key so this device is recognised on return visits
+    localStorage.setItem(`playerKey_${urlPin}`, ref.key);
+
+    window.location.href = `display.html?pin=${urlPin}&player=${ref.key}`;
+  } catch (err) {
+    document.getElementById('loadingEl').classList.remove('show');
+    document.querySelector('.btn-join').disabled = false;
+    errEl.textContent = err.message || 'Network error. Please try again.';
+    errEl.classList.add('show');
+  }
+}
+
+function showInvalid() {
+  document.getElementById('invalidState').style.display = 'block';
+  document.getElementById('homeLink').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>
