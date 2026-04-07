@@ -25,6 +25,17 @@ body {
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
+  /* Enhanced for laptops: subtle gradient and expanded width */
+  background: linear-gradient(135deg, var(--bg) 0%, #e8e8e8 100%);
+}
+@media (min-width: 768px) {
+  body {
+    max-width: 800px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--gold-light) 100%);
+  }
 }
 
 /* ── HEADER ──────────────────────────────────────── */
@@ -33,6 +44,13 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 28px 16px 20px;
   text-align: center;
+  /* Laptop enhancement: gold gradient */
+}
+@media (min-width: 768px) {
+  .header {
+    background: linear-gradient(90deg, var(--surface) 0%, var(--gold-light) 100%);
+    padding: 40px 20px 30px;
+  }
 }
 .app-title {
   font-family: 'Bebas Neue', sans-serif;
@@ -42,6 +60,12 @@ body {
   line-height: 1;
   text-indent: 12px; /* optical compensation for letter-spacing */
 }
+@media (min-width: 768px) {
+  .app-title {
+    font-size: 64px;
+    letter-spacing: 16px;
+  }
+}
 .app-subtitle {
   font-size: 10px;
   letter-spacing: 4px;
@@ -49,9 +73,78 @@ body {
   color: var(--muted);
   margin-top: 6px;
 }
+@media (min-width: 768px) {
+  .app-subtitle {
+    font-size: 12px;
+    letter-spacing: 6px;
+  }
+}
+
+/* ── EXPLANATORY SECTION ─────────────────────────── */
+.explanation {
+  padding: 20px 16px;
+  text-align: center;
+  background: var(--surface);
+  margin: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+@media (min-width: 768px) {
+  .explanation {
+    padding: 30px 20px;
+    margin: 20px;
+  }
+}
+.explanation h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+@media (min-width: 768px) {
+  .explanation h2 {
+    font-size: 32px;
+  }
+}
+.explanation p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+@media (min-width: 768px) {
+  .explanation p {
+    font-size: 14px;
+  }
+}
+.explanation .features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+@media (min-width: 768px) {
+  .explanation .features {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+}
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.feature .icon { font-size: 18px; color: var(--gold); }
 
 /* ── ACTION CARDS ────────────────────────────────── */
 .actions { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 768px) {
+  .actions { padding: 20px; gap: 15px; }
+}
 
 .action-card {
   background: var(--surface);
@@ -62,8 +155,10 @@ body {
   align-items: center;
   gap: 16px;
   user-select: none;
-  transition: transform 0.1s;
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
+.action-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); } /* Laptop hover effect */
 .action-card:active { transform: scale(0.98); opacity: 0.85; }
 .action-card.primary  { border-color: var(--gold); background: var(--gold-light); }
 
@@ -80,6 +175,29 @@ body {
 .action-desc { font-size: 10px; letter-spacing: 1px; color: var(--muted); margin-top: 4px; }
 .action-arrow { font-size: 20px; color: var(--muted); flex-shrink: 0; }
 .action-card.primary .action-arrow { color: var(--gold); }
+
+/* ── ABOUT ME SECTION ────────────────────────────── */
+.about-me {
+  padding: 20px 16px;
+  text-align: center;
+  background: var(--surface);
+  margin: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+@media (min-width: 768px) {
+  .about-me {
+    padding: 30px 20px;
+    margin: 20px;
+  }
+}
+.about-me a {
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 500;
+}
+.about-me a:hover { text-decoration: underline; }
 
 /* ── BOTTOM SHEET OVERLAY ────────────────────────── */
 .overlay {
@@ -251,9 +369,19 @@ body {
   <div class="app-subtitle">Tournament Manager</div>
 </div>
 
+<!-- ── EXPLANATORY SECTION ─────────────────────────────────────────────────── -->
+<div class="explanation">
+  <h2>What is Poker Night?</h2>
+  <p>Poker Night is a free, easy-to-use tournament manager for home poker games. Generate a unique PIN to start a game, invite players via a shareable link, and manage blinds, timers, and leaderboards in real-time from your phone or laptop.</p>
+  <div class="features">
+    <div class="feature"><span class="icon">🎯</span> Real-time tournament tracking</div>
+    <div class="feature"><span class="icon">⏱️</span> Automatic blind level progression</div>
+    <div class="feature"><span class="icon">📱</span> Mobile-friendly for all players</div>
+  </div>
+</div>
+
 <!-- ── ACTION CARDS ───────────────────────────────────────────────────────── -->
 <div class="actions">
-
   <div class="action-card primary" onclick="openLaunch()">
     <div class="action-icon">♠</div>
     <div class="action-text">
@@ -280,7 +408,12 @@ body {
     </div>
     <div class="action-arrow">›</div>
   </div>
+</div>
 
+<!-- ── ABOUT ME SECTION ────────────────────────────────────────────────────── -->
+<div class="about-me">
+  <p>Built with ❤️ by a solo developer. This is a free, open-source project to make home poker nights more fun and organized.</p>
+  <p><a href="about.html">Learn more about me & the project →</a></p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>About - Poker Host</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f4f4f4;
+  --surface: #ffffff;
+  --border: #d0d0d0;
+  --gold: #a07820;
+  --gold-light: #f5ecd7;
+  --text: #1a1a1a;
+  --muted: #888;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, var(--bg) 0%, #e8e8e8 100%);
+}
+@media (min-width: 768px) {
+  body {
+    max-width: 800px;
+    padding: 40px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--gold-light) 100%);
+  }
+}
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.app-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 10px;
+  color: var(--gold);
+  line-height: 1;
+}
+@media (min-width: 768px) {
+  .app-title { font-size: 60px; letter-spacing: 14px; }
+}
+.content {
+  background: var(--surface);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.content h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.content p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+@media (min-width: 768px) {
+  .content p { font-size: 14px; }
+}
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 16px;
+  background: var(--gold);
+  color: #fff;
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+.back-link:hover { opacity: 0.8; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="app-title">About</div>
+</div>
+<div class="content">
+  <h2>About Poker Night</h2>
+  <p>Poker Night is a passion project built by a solo developer who loves poker and coding. It's completely free and open-source, designed to make home poker tournaments smoother and more enjoyable without any cost or ads.</p>
+  <p>As a one-person team, I focus on simplicity, reliability, and fun. If you enjoy the app, feel free to share it or contribute on GitHub. Thanks for playing!</p>
+  <a href="index.html" class="back-link">← Back to Home</a>
+</div>
+</body>
+</html>
