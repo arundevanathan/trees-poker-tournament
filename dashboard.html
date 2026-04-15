@@ -576,7 +576,8 @@ function renderPlayers() {
     chips.innerHTML = '<div style="font-size:11px;color:var(--muted)">Waiting for players...</div>';
     document.getElementById('playerSummary').innerHTML = '';
     ['statActive','statRebuys'].forEach(id => document.getElementById(id).textContent = '0');
-    ['statPool','stat1st','stat2nd'].forEach(id => document.getElementById(id).textContent = '₹0');
+    const cur0 = config?.currency || '$';
+    ['statPool','stat1st','stat2nd'].forEach(id => document.getElementById(id).textContent = cur0 + '0');
     return;
   }
 
@@ -601,9 +602,10 @@ function renderPlayers() {
   document.getElementById('playerSummary').innerHTML = `${active} active<br>${out} eliminated`;
   document.getElementById('statActive').textContent  = active;
   document.getElementById('statRebuys').textContent  = totalRebuys;
-  document.getElementById('statPool').textContent    = '₹' + pool.toLocaleString('en-IN');
-  document.getElementById('stat1st').textContent     = '₹' + Math.round(pool * 0.7).toLocaleString('en-IN');
-  document.getElementById('stat2nd').textContent     = '₹' + Math.round(pool * 0.3).toLocaleString('en-IN');
+  const cur = config.currency || '$';
+  document.getElementById('statPool').textContent    = cur + pool.toLocaleString('en-IN');
+  document.getElementById('stat1st').textContent     = cur + Math.round(pool * 0.7).toLocaleString('en-IN');
+  document.getElementById('stat2nd').textContent     = cur + Math.round(pool * 0.3).toLocaleString('en-IN');
 }
 
 // ── ALARM ──────────────────────────────────────────────────────────────────────

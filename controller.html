@@ -390,11 +390,20 @@ body {
         <input class="setting-input" id="cfgName" type="text" maxlength="40" placeholder="Home Poker Night">
       </div>
       <div class="setting-row">
+        <span class="setting-label">Currency</span>
+        <select class="setting-input" id="cfgCurrency" style="max-width:110px">
+          <option value="$">$ Dollar</option>
+          <option value="₹">₹ Rupee</option>
+          <option value="€">€ Euro</option>
+          <option value="£">£ Pound</option>
+        </select>
+      </div>
+      <div class="setting-row">
         <span class="setting-label">Starting Stack</span>
         <input class="setting-input" id="cfgStack" type="number" min="100" step="100">
       </div>
       <div class="setting-row">
-        <span class="setting-label">Buy-in (₹)</span>
+        <span class="setting-label">Buy-in (<span id="buyin-currency-label">$</span>)</span>
         <input class="setting-input" id="cfgBuyin" type="number" min="0" step="100">
       </div>
       <div class="setting-row">
@@ -402,13 +411,32 @@ body {
         <input class="setting-input" id="cfgDuration" type="number" min="1" max="60" style="max-width:70px">
         <span style="font-size:11px;color:var(--muted)">min</span>
       </div>
+      <div class="setting-row">
+        <span class="setting-label">Progression</span>
+        <select class="setting-input" id="cfgAutoProgress" style="max-width:130px">
+          <option value="manual">Manual</option>
+          <option value="auto">Auto</option>
+        </select>
+      </div>
 
       <div class="setting-group-title">Blind Levels</div>
       <div id="levelsContainer"></div>
-      <button class="btn" id="addLevelBtn" onclick="addLevelRow()"
-              style="padding:7px 12px;font-size:11px;letter-spacing:1px;margin-top:2px">
-        + Add Level
-      </button>
+      <div style="display:flex;gap:6px;margin-top:2px;flex-wrap:wrap">
+        <button class="btn" id="addLevelBtn" onclick="addLevelRow()"
+                style="padding:7px 12px;font-size:11px;letter-spacing:1px">
+          + Add Level
+        </button>
+        <button class="btn" id="exportBlindsBtn" onclick="exportBlinds()"
+                style="padding:7px 12px;font-size:11px;letter-spacing:1px">
+          ↓ Export CSV
+        </button>
+        <label class="btn" id="importBlindsLabel"
+               style="padding:7px 12px;font-size:11px;letter-spacing:1px;cursor:pointer;margin:0">
+          ↑ Import CSV
+          <input type="file" id="importBlindsInput" accept=".csv" style="display:none"
+                 onchange="importBlinds(this)">
+        </label>
+      </div>
 
       <div class="setting-group-title">Rebuys</div>
       <div class="setting-row">
@@ -438,7 +466,7 @@ body {
           <input class="setting-input" id="cfgAddonStack" type="number" min="0" step="500">
         </div>
         <div class="setting-row">
-          <span class="setting-label">Cost (₹)</span>
+          <span class="setting-label">Cost (<span id="addon-currency-label">$</span>)</span>
           <input class="setting-input" id="cfgAddonCost" type="number" min="0" step="100">
         </div>
       </div>
@@ -505,18 +533,37 @@ body {
 
 <!-- ── RESET ───────────────────────────────────────────────────────────────── -->
 <div class="section">
-  <div class="section-header">Reset Game</div>
+  <div class="section-header">Reset</div>
   <div class="section-body">
-    <button class="btn btn-red" id="fullResetBtn" onclick="confirmReset()" style="width:100%;padding:14px;letter-spacing:2px">
-      ⟳ Reset Entire Game
-    </button>
-    <div id="resetConfirm">
+    <!-- Timer & Levels reset -->
+    <div id="timerResetBtnWrap">
+      <button class="btn" onclick="confirmTimerReset()" style="width:100%;padding:14px;letter-spacing:2px;margin-bottom:8px">
+        ⟳ Reset Timers &amp; Levels
+      </button>
+    </div>
+    <div id="timerResetConfirm" style="display:none;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:center;line-height:1.6">
+        Returns to Level 1 and resets the timer. Players are kept.
+      </div>
+      <div class="btn-grid col2">
+        <button class="btn" onclick="cancelTimerReset()">Cancel</button>
+        <button class="btn btn-red" onclick="executeTimerReset()">Yes, Reset</button>
+      </div>
+    </div>
+
+    <!-- Full game reset -->
+    <div id="fullResetBtnWrap">
+      <button class="btn btn-red" onclick="confirmFullReset()" style="width:100%;padding:14px;letter-spacing:2px">
+        ⟳ Reset Entire Game
+      </button>
+    </div>
+    <div id="fullResetConfirm" style="display:none">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:center;line-height:1.6">
         Clears all players and resets progress. Settings will be unlocked.
       </div>
       <div class="btn-grid col2">
-        <button class="btn" onclick="cancelReset()">Cancel</button>
-        <button class="btn btn-red" onclick="executeReset()">Yes, Reset</button>
+        <button class="btn" onclick="cancelFullReset()">Cancel</button>
+        <button class="btn btn-red" onclick="executeFullReset()">Yes, Reset</button>
       </div>
     </div>
   </div>
@@ -563,6 +610,8 @@ const DEFAULT_CONFIG = {
   addonEnabled: false,
   addonRules: { stack: 10000, cost: 1000 },
   locked: false,
+  currency: '$',
+  autoProgress: false,
 };
 
 // ── FIREBASE REFS ─────────────────────────────────────────────────────────────
@@ -578,6 +627,7 @@ let playersData   = {};
 let levelDuration = 15 * 60;
 let settingsOpen  = false;
 let pendingLevels = [];
+let autoAdvancing = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function getLevels() {
@@ -640,6 +690,7 @@ if (urlPin && /^\d{4}$/.test(urlPin)) {
 
   gameRef().on('value', snap => {
     gameState = snap.val();
+    autoAdvancing = false;
     if (gameState?.levelDuration) {
       levelDuration = gameState.levelDuration;
       document.getElementById('durationLabel').textContent = Math.round(levelDuration / 60) + ' min';
@@ -665,7 +716,15 @@ if (urlPin && /^\d{4}$/.test(urlPin)) {
   });
 }
 
-setInterval(() => { if (gameState?.timer?.isRunning) renderTimer(); }, 1000);
+setInterval(() => {
+  if (gameState?.timer?.isRunning) {
+    renderTimer();
+    if (getTimeLeft() === 0 && config?.autoProgress && !autoAdvancing) {
+      autoAdvancing = true;
+      autoAdvanceLevel();
+    }
+  }
+}, 1000);
 
 // ── TIMER MATHS ───────────────────────────────────────────────────────────────
 function getTimeLeft() {
@@ -767,15 +826,22 @@ function populateSettings() {
 
   document.getElementById('lockedNotice').style.display = locked ? 'block' : 'none';
   document.getElementById('cfgName').value     = config.tournamentName || '';
+  document.getElementById('cfgCurrency').value = config.currency || '$';
   document.getElementById('cfgStack').value    = config.startingStack ?? 10000;
   document.getElementById('cfgBuyin').value    = config.buyIn ?? 1000;
   document.getElementById('cfgDuration').value = config.levelDurationMinutes ?? 15;
+  document.getElementById('cfgAutoProgress').value = config.autoProgress ? 'auto' : 'manual';
   document.getElementById('cfgRebuyEnabled').checked  = !!config.rebuyEnabled;
   document.getElementById('cfgCutoffValue').value      = config.rebuyCutoffValue ?? 4;
   document.getElementById('cfgMaxRebuys').value        = config.maxRebuysPerPlayer ?? 2;
   document.getElementById('cfgAddonEnabled').checked   = !!config.addonEnabled;
   document.getElementById('cfgAddonStack').value       = config.addonRules?.stack ?? 10000;
   document.getElementById('cfgAddonCost').value        = config.addonRules?.cost ?? 1000;
+  const cur = config.currency || '$';
+  const bl = document.getElementById('buyin-currency-label');
+  const al = document.getElementById('addon-currency-label');
+  if (bl) bl.textContent = cur;
+  if (al) al.textContent = cur;
 
   toggleRebuyOptions();
   toggleAddonOptions();
@@ -786,7 +852,10 @@ function populateSettings() {
   document.querySelectorAll('#settingsBody input, #settingsBody select').forEach(el => {
     el.disabled = locked;
   });
-  document.getElementById('addLevelBtn').disabled   = locked;
+  document.getElementById('addLevelBtn').disabled    = locked;
+  document.getElementById('exportBlindsBtn').disabled = false; // always allowed
+  document.getElementById('importBlindsLabel').style.opacity = locked ? '0.3' : '1';
+  document.getElementById('importBlindsLabel').style.pointerEvents = locked ? 'none' : '';
   document.getElementById('saveConfigBtn').disabled = locked;
 }
 
@@ -855,6 +924,57 @@ function removeLevelRow(index) {
   renderLevelsTable();
 }
 
+function exportBlinds() {
+  const rows = ['Level,Type,SB,BB,Ante'];
+  pendingLevels.forEach((lvl, i) => {
+    if (lvl.isBreak) {
+      rows.push(`${i + 1},break,,,`);
+    } else {
+      rows.push(`${i + 1},blind,${lvl.sb || ''},${lvl.bb || ''},${lvl.ante || ''}`);
+    }
+  });
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'blind-structure.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBlinds(input) {
+  if (config?.locked) return;
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines  = e.target.result.trim().split(/\r?\n/);
+    const parsed = [];
+    for (const line of lines) {
+      const cols = line.split(',');
+      if (cols[0].toLowerCase() === 'level') continue; // skip header
+      const type = (cols[1] || '').trim().toLowerCase();
+      if (type === 'break') {
+        parsed.push({ isBreak: true });
+      } else {
+        const sb   = parseInt(cols[2]);
+        const bb   = parseInt(cols[3]);
+        const ante = parseInt(cols[4]);
+        if (sb > 0 && bb > 0) {
+          const lvl = { sb, bb };
+          if (ante > 0) lvl.ante = ante;
+          parsed.push(lvl);
+        }
+      }
+    }
+    if (parsed.length === 0) { alert('No valid levels found in CSV.'); return; }
+    pendingLevels = parsed;
+    renderLevelsTable();
+  };
+  reader.readAsText(file);
+  input.value = ''; // reset so same file can be re-imported
+}
+
 function toggleRebuyOptions() {
   const en = document.getElementById('cfgRebuyEnabled')?.checked;
   const el = document.getElementById('rebuyOptions');
@@ -889,9 +1009,11 @@ function saveConfig() {
 
   const newConfig = {
     tournamentName:       document.getElementById('cfgName').value.trim() || 'Home Poker Night',
+    currency:             document.getElementById('cfgCurrency').value || '$',
     startingStack:        parseInt(document.getElementById('cfgStack').value)   || 10000,
     buyIn:                parseInt(document.getElementById('cfgBuyin').value)   || 1000,
     levelDurationMinutes: mins,
+    autoProgress:         document.getElementById('cfgAutoProgress').value === 'auto',
     levels,
     rebuyEnabled:         document.getElementById('cfgRebuyEnabled').checked,
     rebuyCutoffType:      'level',
@@ -967,6 +1089,24 @@ function nextLevel() {
   });
 }
 
+function autoAdvanceLevel() {
+  if (!config) { autoAdvancing = false; return; }
+  const levels = getLevels();
+  const level  = gameState?.currentLevel ?? 0;
+  if (level >= levels.length - 1) {
+    // Final level — just stop the timer
+    gameRef().child('timer').update({ isRunning: false, pausedAt: 0, startedAt: null })
+      .then(() => { autoAdvancing = false; });
+    return;
+  }
+  const secs = (config.levelDurationMinutes || 15) * 60;
+  gameRef().update({
+    currentLevel:  level + 1,
+    levelDuration: secs,
+    timer: { isRunning: true, pausedAt: secs, startedAt: firebase.database.ServerValue.TIMESTAMP },
+  }).then(() => { autoAdvancing = false; });
+}
+
 function prevLevel() {
   if (!config) return;
   const level = gameState?.currentLevel ?? 0;
@@ -1009,17 +1149,35 @@ function toggleElim(key) {
 }
 
 // ── RESET ──────────────────────────────────────────────────────────────────────
-function confirmReset() {
-  document.getElementById('resetConfirm').style.display = 'block';
-  document.getElementById('fullResetBtn').style.display  = 'none';
+function confirmTimerReset() {
+  document.getElementById('timerResetConfirm').style.display = 'block';
+  document.getElementById('timerResetBtnWrap').style.display = 'none';
 }
-function cancelReset() {
-  document.getElementById('resetConfirm').style.display = 'none';
-  document.getElementById('fullResetBtn').style.display  = 'block';
+function cancelTimerReset() {
+  document.getElementById('timerResetConfirm').style.display = 'none';
+  document.getElementById('timerResetBtnWrap').style.display = 'block';
 }
-function executeReset() {
+function executeTimerReset() {
   const secs = (config?.levelDurationMinutes || 15) * 60;
-  // Unlock settings on reset so the host can adjust before the next game
+  if (config?.locked) configRef().update({ locked: false });
+  gameRef().set({
+    currentLevel:  0,
+    levelDuration: secs,
+    timer: { isRunning: false, pausedAt: secs, startedAt: null },
+  });
+  cancelTimerReset();
+}
+
+function confirmFullReset() {
+  document.getElementById('fullResetConfirm').style.display = 'block';
+  document.getElementById('fullResetBtnWrap').style.display = 'none';
+}
+function cancelFullReset() {
+  document.getElementById('fullResetConfirm').style.display = 'none';
+  document.getElementById('fullResetBtnWrap').style.display = 'block';
+}
+function executeFullReset() {
+  const secs = (config?.levelDurationMinutes || 15) * 60;
   if (config?.locked) configRef().update({ locked: false });
   gameRef().set({
     currentLevel:  0,
@@ -1027,7 +1185,7 @@ function executeReset() {
     timer: { isRunning: false, pausedAt: secs, startedAt: null },
   });
   playersRef().remove();
-  cancelReset();
+  cancelFullReset();
 }
 </script>
 </body>
