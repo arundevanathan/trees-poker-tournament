@@ -82,6 +82,43 @@ body {
 }
 .home-link:hover { color: var(--gold); }
 
+/* QUICK LINKS BAR */
+.quick-links {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.quick-link {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 9px 0;
+  margin-right: 20px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.quick-link:hover { color: var(--gold); border-bottom-color: var(--gold); }
+.quick-link-copy {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  padding: 9px 0;
+  transition: color 0.15s;
+}
+.quick-link-copy:hover { color: var(--gold); }
+
 /* SECTION */
 .section {
   background: var(--surface);
@@ -377,8 +414,15 @@ body {
       <div class="conn-dot" id="connDot"></div>
       <span id="connLabel">Connecting</span>
     </div>
-    <a class="home-link" href="index.html">← Home</a>
   </div>
+</div>
+
+<!-- ── QUICK LINKS ─────────────────────────────────────────────────────────── -->
+<div class="quick-links">
+  <a class="quick-link" href="index.html">← Home</a>
+  <a class="quick-link" id="quickDashboard" href="#">Dashboard</a>
+  <a class="quick-link" id="quickJoin" href="#">Player Link</a>
+  <button class="quick-link-copy" id="quickCopyBtn" onclick="copyJoinLink()">Copy Link</button>
 </div>
 
 <!-- ── TOURNAMENT SETTINGS ────────────────────────────────────────────────── -->
@@ -592,6 +636,24 @@ if (!urlPin || !/^\d{4}$/.test(urlPin)) {
   document.getElementById('noPinOverlay').classList.add('show');
 }
 document.getElementById('headerPin').textContent = urlPin || '—';
+
+if (urlPin) {
+  const base = window.location.origin + window.location.pathname.replace('controller.html', '');
+  document.getElementById('quickDashboard').href = `${base}dashboard.html?pin=${urlPin}`;
+  document.getElementById('quickJoin').href      = `${base}join.html?pin=${urlPin}`;
+}
+
+function copyJoinLink() {
+  if (!urlPin) return;
+  const base = window.location.origin + window.location.pathname.replace('controller.html', '');
+  const link = `${base}join.html?pin=${urlPin}`;
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('quickCopyBtn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
